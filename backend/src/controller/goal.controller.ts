@@ -114,3 +114,59 @@ export const getGoalById = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" })
     }
 }
+
+// write a function edit goal by id
+
+export const editGoal = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { title } = req.body;
+        const updatedGoal = await Goal.findByIdAndUpdate(id, { title }, { new: true });
+        if (!updatedGoal) {
+            return res.status(404).json({ message: "Goal not found" })
+        }
+        res.status(200).json({ updatedGoal })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+// write a fuction to regenerate goal by id
+
+export const regenerateGoal = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const goal = await Goal.findById(id);
+        if (!goal) {
+            return res.status(404).json({ message: "Goal not found" })
+        }
+        const genAI = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY as string
+        });
+        const result = await genAI.models.generateContent({
+            model: "gemini-3-flash-preview", 
+            contents: prompt + "\n\nUser Goal: " + goal.title,
+        });
+        const rawText = result.text;
+        const cleanedText = cleanRoadmapResponse(rawText);
+        const parsedResponse = JSON.parse(cleanedText);
+        if (parsedResponse.tasks && Array.isArray(parsedResponse.tasks)) {
+            const tasksToSave = parsedResponse.tasks.map((task: any) => ({
+                heading: task.heading,
+                title: task.title,
+                description: task.description,
+            }));
+            const updatedGoal = await Goal.findByIdAndUpdate(id, { goal: tasksToSave }, { new: true });
+            res.status(200).json({ updatedGoal })
+        } else {
+            throw new Error("AI response structure is invalid (missing tasks array)");
+        }
+    } catch (error: any) {
+        console.error("Error in AI Goal Regeneration:", error);
+        res.status(500).json({ 
+            message: "Internal server error during roadmap regeneration", 
+            error: error.message 
+        });
+    }
+}
