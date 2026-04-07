@@ -126,12 +126,17 @@ export const regenerateGoal = createAsyncThunk(
 
 export const editTask = createAsyncThunk(
     "goal/editTask",
-    async ({ id, taskId, title, description }: { id: string, taskId: string, title: string, description: string }, { rejectWithValue }) => {
+    async ({ id, taskId, title, description, status }: { id: string, taskId: string, title?: string, description?: string, status?: string }, { rejectWithValue }) => {
         try {
+            const body: any = {};
+            if (title !== undefined) body.title = title;
+            if (description !== undefined) body.description = description;
+            if (status !== undefined) body.status = status;
+
             const response = await fetch(`http://localhost:4001/api/goals/${id}/task/${taskId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, description }),
+                body: JSON.stringify(body),
             });
             const data = await response.json();
             return data.updatedTask;

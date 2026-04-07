@@ -80,6 +80,19 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
     }
   };
 
+  const handleToggleStatus = async (taskId: string, currentStatus: string) => {
+    let newStatus = "pending";
+    if (currentStatus === "pending") newStatus = "in_progress";
+    else if (currentStatus === "in_progress") newStatus = "completed";
+    else newStatus = "pending";
+
+    await dispatch(editTask({ 
+      id: goalItem._id, 
+      taskId, 
+      status: newStatus 
+    }));
+  };
+
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const items = Array.from(tasks);
@@ -191,22 +204,23 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
                         {/* Icon Circle */}
                         <div className="mr-5 mt-2 relative z-10 flex-shrink-0 w-6 flex justify-center bg-background">
                           {isCompleted ? (
-                            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center p-1 shadow-sm">
+                            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center p-1 shadow-sm transition-colors cursor-pointer" onClick={() => handleToggleStatus(task._id, task.status)}>
                               <Check className="w-4 h-4 stroke-[3]" />
                             </div>
                           ) : isInProgress ? (
-                            <div className="w-6 h-6 rounded-full border-[3px] border-primary flex items-center justify-center bg-background shadow-sm">
+                            <div className="w-6 h-6 rounded-full border-[3px] border-primary flex items-center justify-center bg-background shadow-sm transition-colors cursor-pointer" onClick={() => handleToggleStatus(task._id, task.status)}>
                               <div className="w-2 h-2 rounded-full bg-primary" />
                             </div>
                           ) : (
-                            <div className="w-6 h-6 rounded-full border-2 border-muted-foreground/30 bg-background" />
+                            <div className="w-6 h-6 rounded-full border-2 border-muted-foreground/30 bg-background transition-colors cursor-pointer hover:border-primary" onClick={() => handleToggleStatus(task._id, task.status)} />
                           )}
                         </div>
 
                         {/* Task Card */}
                         <div className={cn(
-                          "flex-1 bg-card rounded-xl p-5 shadow-sm transition-shadow duration-200",
-                          isInProgress ? "border-2 border-primary/50 shadow-md ring-4 ring-primary/5" : "border border-border"
+                          "flex-1 bg-card rounded-xl p-5 shadow-sm transition-all duration-200",
+                          isInProgress ? "border-2 border-primary/50 shadow-md ring-4 ring-primary/5" : "border border-border",
+                          isCompleted && "bg-muted/30 opacity-80"
                         )}>
                           <div className="flex items-start gap-3">
                             {/* Grip / Drag icon - bound to @hello-pangea/dnd */}
@@ -220,11 +234,11 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
                             {/* Custom Checkbox */}
                             <div className="pt-0.5">
                               {isCompleted ? (
-                                <div className="w-5 h-5 rounded border border-primary bg-primary text-primary-foreground flex items-center justify-center">
+                                <div className="w-5 h-5 rounded border border-primary bg-primary text-primary-foreground flex items-center justify-center cursor-pointer" onClick={() => handleToggleStatus(task._id, task.status)}>
                                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded border-2 border-muted-foreground/30 hover:border-primary transition-colors cursor-pointer" />
+                                <div className="w-5 h-5 rounded border-2 border-muted-foreground/30 hover:border-primary transition-colors cursor-pointer" onClick={() => handleToggleStatus(task._id, task.status)} />
                               )}
                             </div>
 
@@ -253,7 +267,10 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
                               ) : (
                                 <>
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2.5">
-                                    <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight truncate">
+                                    <h3 className={cn(
+                                      "font-bold text-base md:text-lg text-foreground tracking-tight truncate transition-all",
+                                      isCompleted && "line-through text-muted-foreground"
+                                    )}>
                                       {task.title}
                                     </h3>
 
@@ -268,7 +285,10 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
                                   </div>
 
                                   {task.description && (
-                                    <p className="text-sm md:text-base text-muted-foreground mb-4 leading-relaxed max-w-3xl">
+                                    <p className={cn(
+                                      "text-sm md:text-base text-muted-foreground mb-4 leading-relaxed max-w-3xl transition-all",
+                                      isCompleted && "line-through opacity-60"
+                                    )}>
                                       {task.description}
                                     </p>
                                   )}

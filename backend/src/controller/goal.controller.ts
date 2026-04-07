@@ -176,23 +176,33 @@ export const regenerateGoal = async (req: Request, res: Response) => {
 export const editTask = async (req: Request, res: Response) => {
     try {
         const { id, taskId } = req.params;
-        const { title , description } = req.body;
-        if(title && description){
-            const updatedTask = await Goal.findOneAndUpdate(
-                { _id: id, "goal._id": taskId },
-                { $set: { "goal.$.title": title, "goal.$.description": description } },
-                { new: true }
-            );
-            res.status(200).json({ updatedTask })
+        const { title, description, status } = req.body;
+        
+        const updateFields: any = {};
+        if (title !== undefined) updateFields["goal.$.title"] = title;
+        if (description !== undefined) updateFields["goal.$.description"] = description;
+        if (status !== undefined) updateFields["goal.$.status"] = status;
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({ message: "At least one field is required to update" });
         }
-        else{
-            return res.status(400).json({ message: "Title and description are required" })
+
+        const updatedGoal = await Goal.findOneAndUpdate(
+            { _id: id, "goal._id": taskId },
+            { $set: updateFields },
+            { new: true }
+        );
+
+        if (!updatedGoal) {
+            return res.status(404).json({ message: "Goal or task not found" });
         }
+
+        res.status(200).json({ updatedTask: updatedGoal });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Internal server error" })
+        console.log(error);
+        res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
 // write a function to delete goal by id
 
