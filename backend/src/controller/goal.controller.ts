@@ -170,3 +170,62 @@ export const regenerateGoal = async (req: Request, res: Response) => {
         });
     }
 }
+
+// write a funtion to edit task by id
+
+export const editTask = async (req: Request, res: Response) => {
+    try {
+        const { id, taskId } = req.params;
+        const { title , description } = req.body;
+        if(title && description){
+            const updatedTask = await Goal.findOneAndUpdate(
+                { _id: id, "goal._id": taskId },
+                { $set: { "goal.$.title": title, "goal.$.description": description } },
+                { new: true }
+            );
+            res.status(200).json({ updatedTask })
+        }
+        else{
+            return res.status(400).json({ message: "Title and description are required" })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+// write a function to delete goal by id
+
+export const deleteGoal = async (req: Request, res: Response) => {
+    try {
+        const { id, taskId } = req.params;
+        const deletedGoal = await Goal.findByIdAndUpdate(
+            id,
+            { $pull: { goal: { _id: taskId } } },
+            { new: true }
+        );
+        if (!deletedGoal) {
+            return res.status(404).json({ message: "Goal not found" })
+        }
+        // Send back the updated document
+        res.status(200).json({ deletedTask: deletedGoal })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+// write a function to delete entire goal by id
+export const deleteDashboardGoal = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const deletedGoal = await Goal.findByIdAndDelete(id);
+        if (!deletedGoal) {
+            return res.status(404).json({ message: "Goal not found" })
+        }
+        res.status(200).json({ deletedGoal })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
