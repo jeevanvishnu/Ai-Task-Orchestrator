@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./alert-dialog";
 
 interface GoalCardProps {
   title: string;
@@ -9,12 +12,16 @@ interface GoalCardProps {
   totalTasks: number;
   isCompleted?: boolean;
   onClick?: () => void;
+  onDelete?: () => void;
 }
 
-export const GoalCard = ({ title, dateStr, progress, tasksCompleted, totalTasks, isCompleted, onClick }: GoalCardProps) => {
+export const GoalCard = ({ title, dateStr, progress, tasksCompleted, totalTasks, isCompleted, onClick, onDelete }: GoalCardProps) => {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   return (
-    <div 
-      onClick={onClick}
+    <>
+      <div 
+        onClick={onClick}
       className="goal-card bg-card text-card-foreground border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
     >
       <div className="flex justify-between items-start mb-4">
@@ -22,9 +29,28 @@ export const GoalCard = ({ title, dateStr, progress, tasksCompleted, totalTasks,
           <h3 className="font-semibold text-lg">{title}</h3>
           <p className="text-xs text-muted-foreground mt-1">Created {dateStr}</p>
         </div>
-        <button className="text-muted-foreground hover:bg-muted p-1 rounded-md transition-colors">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button 
+              onClick={(e) => e.stopPropagation()}
+              className="text-muted-foreground hover:bg-muted p-1 rounded-md transition-colors"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem 
+              className="text-destructive focus:text-destructive cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteModalOpen(true);
+              }}
+            >
+              Delete Goal
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="mt-8">
@@ -45,5 +71,32 @@ export const GoalCard = ({ title, dateStr, progress, tasksCompleted, totalTasks,
         </p>
       </div>
     </div>
+
+      {/* Delete Goal Confirmation */}
+      <AlertDialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this goal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{title}"? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="outline" size="default" onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              size="default" 
+              onClick={(e) => { 
+                e.stopPropagation();
+                setDeleteModalOpen(false); 
+                onDelete?.(); 
+              }} 
+              className="bg-red-600 text-white hover:bg-red-800"
+            >
+              Delete Goal
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

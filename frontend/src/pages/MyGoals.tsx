@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks/reduxHooks";
-import { getGoals } from "../../app/features/goalSlice";
+import { getGoals, deleteDashboardGoal } from "../../app/features/goalSlice";
 import { GoalCard } from "../components/ui/GoalCard";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../app/store";
@@ -51,6 +51,7 @@ export const MyGoals = () => {
                 totalTasks={totalTasks}
                 isCompleted={progress === 100}
                 onClick={() => navigate(`/goals/${goalItem._id}`)}
+                onDelete={() => dispatch(deleteDashboardGoal(goalItem._id))}
               />
             );
           })}

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import  { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from "@hello-pangea/dnd";
-import { ChevronRight, Edit2, RefreshCw, Calendar, MoreHorizontal, Check, Circle, GripVertical, CheckSquare } from "lucide-react";
+import { ChevronRight, Edit2, RefreshCw, Calendar, MoreHorizontal, Check, Circle, GripVertical, CheckSquare, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./alert-dialog";
+import { useAppDispatch } from "../../../app/hooks/reduxHooks";
+import { editGoalAction, regenerateGoal, editTask, deleteGoal } from "../../../app/features/goalSlice";
 
 interface RoadmapViewProps {
   goalItem: any;
@@ -10,11 +14,71 @@ interface RoadmapViewProps {
 }
 
 export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
+  const dispatch = useAppDispatch();
   const [tasks, setTasks] = useState<any[]>(goalItem.goal || []);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(goalItem.title);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Task specific states
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editedTaskContent, setEditedTaskContent] = useState({ title: '', description: '' });
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     setTasks(goalItem.goal || []);
+    setEditedTitle(goalItem.title);
   }, [goalItem]);
+
+  const handleEditToggle = async () => {
+    if (isEditing) {
+      if (editedTitle.trim() !== goalItem.title) {
+        setIsSaving(true);
+        await dispatch(editGoalAction({ id: goalItem._id, title: editedTitle.trim() }));
+        setIsSaving(false);
+      }
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (isEditing && editedTitle.trim() !== goalItem.title) {
+      setIsSaving(true);
+      await dispatch(editGoalAction({ id: goalItem._id, title: editedTitle.trim() }));
+      setIsSaving(false);
+      setIsEditing(false);
+    }
+    setIsRegenerating(true);
+    await dispatch(regenerateGoal(goalItem._id));
+    setIsRegenerating(false);
+  };
+
+  const startEditingTask = (task: any) => {
+    setEditingTaskId(task._id);
+    setEditedTaskContent({ title: task.title, description: task.description || '' });
+  };
+
+  const handleSaveTask = async () => {
+    if (editingTaskId) {
+      await dispatch(editTask({ 
+        id: goalItem._id, 
+        taskId: editingTaskId, 
+        title: editedTaskContent.title, 
+        description: editedTaskContent.description 
+      }));
+      setEditingTaskId(null);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (taskToDelete) {
+      await dispatch(deleteGoal({ id: goalItem._id, taskId: taskToDelete }));
+      setTaskToDelete(null);
+    }
+  };
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -42,14 +106,34 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{goalItem.title}</h1>
+        {isEditing ? (
+          <input
+            type="text"
+            className="flex-1 text-3xl font-extrabold tracking-tight bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleEditToggle()}
+            autoFocus
+          />
+        ) : (
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{goalItem.title}</h1>
+        )}
+
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
-            <Edit2 className="w-4 h-4" />
-            Edit Goal
+          <button
+            onClick={handleEditToggle}
+            disabled={isSaving || isRegenerating}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : isEditing ? <Check className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+            {isEditing ? "Save Title" : "Edit Goal"}
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm">
-            <RefreshCw className="w-4 h-4" />
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating || isSaving}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {isRegenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             Regenerate
           </button>
         </div>
@@ -146,25 +230,49 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
 
                             {/* Task Content */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2.5">
-                                <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight truncate">
-                                  {task.title}
-                                </h3>
+                              {editingTaskId === task._id ? (
+                                <div className="space-y-3 mb-3">
+                                  <input 
+                                    className="w-full text-base md:text-lg font-bold bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                                    value={editedTaskContent.title}
+                                    onChange={(e) => setEditedTaskContent({...editedTaskContent, title: e.target.value})}
+                                    placeholder="Task Title"
+                                  />
+                                  <textarea 
+                                    className="w-full text-sm md:text-base text-muted-foreground bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/50"
+                                    rows={3}
+                                    value={editedTaskContent.description}
+                                    onChange={(e) => setEditedTaskContent({...editedTaskContent, description: e.target.value})}
+                                    placeholder="Task Description"
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <button onClick={handleSaveTask} className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-md hover:bg-primary/90">Save</button>
+                                    <button onClick={() => setEditingTaskId(null)} className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-semibold rounded-md hover:bg-secondary/80">Cancel</button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2.5">
+                                    <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight truncate">
+                                      {task.title}
+                                    </h3>
 
-                                <span className={cn(
-                                  "text-[11px] md:text-xs font-bold px-3 py-1 rounded-full flex-shrink-0 tracking-wide w-fit",
-                                  isCompleted ? "bg-[#10b981]/10 text-[#10b981]" :
-                                    isInProgress ? "bg-primary/10 text-primary" :
-                                      "bg-muted text-muted-foreground"
-                                )}>
-                                  {isCompleted ? "Completed" : isInProgress ? "In Progress" : "Pending"}
-                                </span>
-                              </div>
+                                    <span className={cn(
+                                      "text-[11px] md:text-xs font-bold px-3 py-1 rounded-full flex-shrink-0 tracking-wide w-fit",
+                                      isCompleted ? "bg-[#10b981]/10 text-[#10b981]" :
+                                        isInProgress ? "bg-primary/10 text-primary" :
+                                          "bg-muted text-muted-foreground"
+                                    )}>
+                                      {isCompleted ? "Completed" : isInProgress ? "In Progress" : "Pending"}
+                                    </span>
+                                  </div>
 
-                              {task.description && (
-                                <p className="text-sm md:text-base text-muted-foreground mb-4 leading-relaxed max-w-3xl">
-                                  {task.description}
-                                </p>
+                                  {task.description && (
+                                    <p className="text-sm md:text-base text-muted-foreground mb-4 leading-relaxed max-w-3xl">
+                                      {task.description}
+                                    </p>
+                                  )}
+                                </>
                               )}
 
                               <div className="flex items-center justify-between mt-auto pt-2">
@@ -174,14 +282,24 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
                                 </div>
 
                                 <div className="flex items-center gap-2 text-muted-foreground">
-                                  {(!isCompleted) && (
-                                    <button className="p-1.5 rounded-md hover:bg-muted hover:text-foreground transition-colors">
+                                  {(!isCompleted) && editingTaskId !== task._id && (
+                                    <button onClick={() => startEditingTask(task)} className="p-1.5 rounded-md hover:bg-muted hover:text-foreground transition-colors">
                                       <Edit2 className="w-4 h-4" />
                                     </button>
                                   )}
-                                  <button className="p-1.5 rounded-md hover:bg-muted hover:text-foreground transition-colors">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                  </button>
+                                  
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button className="p-1.5 rounded-md hover:bg-muted hover:text-foreground transition-colors">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer" onClick={() => setTaskToDelete(task._id)}>
+                                        Delete Task
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </div>
                             </div>
@@ -197,6 +315,24 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
           )}
         </Droppable>
       </DragDropContext>
+
+      {/* Delete Task Confirmation */}
+      <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this task from your roadmap.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="outline" size="default">Cancel</AlertDialogCancel>
+            <AlertDialogAction size="default" onClick={handleDeleteTask} className=" bg-red-600 text-white hover:bg-red-800">
+              Delete Task
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

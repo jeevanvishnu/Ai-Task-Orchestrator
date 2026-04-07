@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles, Video, Code, Terminal, Loader2 } from "lucide-react";
 import { GoalCard } from "../components/ui/GoalCard";
 import { useAppDispatch, useAppSelector } from "../../app/hooks/reduxHooks";
-import { getDashboard, createGoalAction } from "../../app/features/goalSlice";
+import { getDashboard, createGoalAction, deleteDashboardGoal } from "../../app/features/goalSlice";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../app/store";
 import gsap from "gsap";
@@ -139,6 +139,7 @@ export const Dashboard = () => {
                 totalTasks={totalTasks}
                 isCompleted={progress === 100}
                 onClick={() => navigate(`/goals/${goalItem._id}`)}
+                onDelete={() => dispatch(deleteDashboardGoal(goalItem._id))}
               />
             );
           })}
