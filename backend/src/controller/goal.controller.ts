@@ -244,10 +244,11 @@ export const deleteDashboardGoal = async (req: Request, res: Response) => {
 
 export const getHistory = async (req: Request, res: Response) => {
     try {
-        const goals = await Goal.find()
+        const goals = await Goal.find().sort({ createdAt: -1 });
 
-        const inprogress = await Goal.find({ status: "in-progress" })
-        const completed = await Goal.find({ status: "completed" })
+        const inprogress = await Goal.find({ "goal.status": "in_progress" });
+        const completed = await Goal.find({ "goal.status": "completed" });
+        
         if (!goals) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -263,11 +264,11 @@ export const getHistory = async (req: Request, res: Response) => {
 
 export const searchGoal = async (req: Request, res: Response) => {
     try {
-        const { query } = req.query;
-        const goals = await Goal.find({  title: { $regex: query, $options: "i" } });
-        if (!goals) {
-            return res.status(404).json({ message: "Goal not found" })
+        const query = req.query.query as string;
+        if (!query) {
+             return res.status(400).json({ message: "Search query is required" });
         }
+        const goals = await Goal.find({ title: { $regex: query, $options: "i" } });
         res.status(200).json({ goals })
     } catch (error) {
         console.log(error)
