@@ -121,7 +121,7 @@ export const editGoal = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { title } = req.body;
-        const updatedGoal = await Goal.findByIdAndUpdate(id, { title }, { new: true });
+        const updatedGoal = await Goal.findByIdAndUpdate(id, { title }, { returnDocument: "after" });
         if (!updatedGoal) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -157,7 +157,7 @@ export const regenerateGoal = async (req: Request, res: Response) => {
                 title: task.title,
                 description: task.description,
             }));
-            const updatedGoal = await Goal.findByIdAndUpdate(id, { goal: tasksToSave }, { new: true });
+            const updatedGoal = await Goal.findByIdAndUpdate(id, { goal: tasksToSave }, { returnDocument: "after" });
             res.status(200).json({ updatedGoal })
         } else {
             throw new Error("AI response structure is invalid (missing tasks array)");
@@ -190,7 +190,7 @@ export const editTask = async (req: Request, res: Response) => {
         const updatedGoal = await Goal.findOneAndUpdate(
             { _id: id, "goal._id": taskId },
             { $set: updateFields },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!updatedGoal) {
@@ -212,7 +212,7 @@ export const deleteGoal = async (req: Request, res: Response) => {
         const deletedGoal = await Goal.findByIdAndUpdate(
             id,
             { $pull: { goal: { _id: taskId } } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!deletedGoal) {
             return res.status(404).json({ message: "Goal not found" })
@@ -239,3 +239,42 @@ export const deleteDashboardGoal = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" })
     }
 }
+
+// write a funciton  get history of goals
+
+export const getHistory = async (req: Request, res: Response) => {
+    try {
+        const goals = await Goal.find()
+
+        const inprogress = await Goal.find({ status: "in-progress" })
+        const completed = await Goal.find({ status: "completed" })
+        if (!goals) {
+            return res.status(404).json({ message: "Goal not found" })
+        }
+        res.status(200).json({ goals, inprogress, completed })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+
+// write a fuction to search goal by title
+
+export const searchGoal = async (req: Request, res: Response) => {
+    try {
+        const { query } = req.query;
+        const goals = await Goal.find({  title: { $regex: query, $options: "i" } });
+        if (!goals) {
+            return res.status(404).json({ message: "Goal not found" })
+        }
+        res.status(200).json({ goals })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+
+// write  a fuction to setting of goal
+

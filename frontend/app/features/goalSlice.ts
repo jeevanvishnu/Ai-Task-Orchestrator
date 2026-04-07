@@ -16,12 +16,18 @@ export interface Goal {
 
 export interface GoalState {
     goals: Goal[];
+    history: {
+        goals: Goal[];
+        inprogress: Goal[];
+        completed: Goal[];
+    } | null;
     loading: boolean;
     error: string | null;
 }
 
 const initialState: GoalState = {
     goals: [],
+    history: null,
     loading: false,
     error: null,
 }
@@ -179,6 +185,39 @@ export const deleteDashboardGoal = createAsyncThunk(
     }
 )
 
+
+export const getHistory = createAsyncThunk(
+    "goal/getHistory",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await fetch(`http://localhost:4001/api/history`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await response.json();
+            return data;
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+)
+
+export const searchGoal = createAsyncThunk(
+    "goal/searchGoal",
+    async (query: string, { rejectWithValue }) => {
+        try {
+            const response = await fetch(`http://localhost:4001/api/search?query=${query}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await response.json();
+            return data.goals;
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+)
+
 const goalSlice = createSlice({
     name: "goal",
     initialState,
@@ -324,6 +363,28 @@ const goalSlice = createSlice({
         }
       })
       .addCase(deleteDashboardGoal.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(getHistory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getHistory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.history = action.payload || null;
+      })
+      .addCase(getHistory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(searchGoal.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(searchGoal.fulfilled, (state, action) => {
+        state.loading = false;
+        state.goals = action.payload || [];
+      })
+      .addCase(searchGoal.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

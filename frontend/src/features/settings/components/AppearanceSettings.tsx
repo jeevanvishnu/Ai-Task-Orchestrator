@@ -1,6 +1,7 @@
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import { useTheme, Theme } from "../../../context/ThemeProvider";
+import { useTheme } from "../../../context/ThemeProvider";
+import type { Theme } from "../../../context/ThemeProvider";
 
 export const AppearanceSettings = () => {
   const { theme, setTheme } = useTheme();

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown, Loader2 } from "lucide-react";
 import { HistoryItem } from "../features/history/components/HistoryItem";
 import { useAppDispatch, useAppSelector } from "../../app/hooks/reduxHooks";
-import { getGoals } from "../../app/features/goalSlice";
+import { getHistory, searchGoal } from "../../app/features/goalSlice";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../app/store";
 import { cn } from "../lib/utils";
@@ -10,17 +10,40 @@ import { cn } from "../lib/utils";
 export const History = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { goals, loading, error } = useAppSelector((state: RootState) => state.goal);
+  const { goals, history, loading, error } = useAppSelector((state: RootState) => state.goal);
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (goals.length === 0) {
-      dispatch(getGoals());
-    }
-  }, [dispatch, goals.length]);
+    const timer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        dispatch(searchGoal(searchQuery));
+      } else {
+        dispatch(getHistory());
+      }
+    }, 400);
 
-  const filteredGoals = goals.filter(goal => {
+    return () => clearTimeout(timer);
+  }, [dispatch, searchQuery]);
+
+  // Determine which list to display
+  const getDisplayGoals = () => {
+    // If we're searching, use the 'goals' array which is updated by searchGoal thunk
+    if (searchQuery.trim()) return goals;
+
+    // If we have history data from the backend
+    if (history) {
+      if (filter === "completed" && history.completed.length > 0) return history.completed;
+      if (filter === "in_progress" && history.inprogress.length > 0) return history.inprogress;
+      return history.goals;
+    }
+
+    return goals;
+  };
+
+  const filteredGoals = getDisplayGoals().filter(goal => {
+    // Second layer of filtering in case backend returns everything in history.goals 
+    // or if the frontend needs to verify status dynamically
     const totalTasks = goal.goal?.length || 0;
     const completedTasks = goal.goal?.filter((t: any) => t.status === "completed").length || 0;
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -29,10 +52,8 @@ export const History = () => {
     if (progress === 100) status = "completed";
     else if (progress > 0) status = "in_progress";
 
-    const matchesFilter = filter === "all" || status === filter;
-    const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesFilter && matchesSearch;
+    if (filter === "all") return true;
+    return status === filter;
   });
 
   if (error) {
@@ -82,7 +103,7 @@ export const History = () => {
              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
              <input 
                 type="text"
-                placeholder="Search history..."
+                placeholder="Search history by title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
@@ -98,7 +119,7 @@ export const History = () => {
 
       {/* Main Content List */}
       <div className="space-y-4">
-        {loading && goals.length === 0 ? (
+        {loading && getDisplayGoals().length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 animate-in fade-in zoom-in-95 duration-500">
              <div className="relative">
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />
@@ -106,7 +127,7 @@ export const History = () => {
                    <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
                 </div>
              </div>
-             <p className="text-muted-foreground font-medium italic">Assembling your progress data...</p>
+             <p className="text-muted-foreground font-medium italic">Searching your history...</p>
           </div>
         ) : filteredGoals.length > 0 ? (
           filteredGoals.map((goal) => {
@@ -137,14 +158,14 @@ export const History = () => {
                 <Search className="w-10 h-10 text-muted-foreground/60" />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-foreground mb-1">No matches found</h3>
-                <p className="text-muted-foreground max-w-xs mx-auto">We couldn't find any goals matching your search query or filters.</p>
+                <h3 className="text-xl font-bold text-foreground mb-1">No results found</h3>
+                <p className="text-muted-foreground max-w-xs mx-auto">We couldn't find any goals matching your search or filters.</p>
              </div>
              <button 
                 onClick={() => {setFilter("all"); setSearchQuery("");}}
                 className="text-primary font-bold text-sm hover:underline underline-offset-4"
              >
-                Clear all filters
+                Reset all filters
              </button>
           </div>
         )}
