@@ -20,7 +20,7 @@ export const TopNav = ({ onMenuClick }: TopNavProps) => {
           <Search className="text-muted-foreground w-4 h-4 mr-2" />
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search globally..."
             className="bg-transparent border-none outline-none text-sm w-full text-foreground placeholder:text-muted-foreground"
           />
         </div>
