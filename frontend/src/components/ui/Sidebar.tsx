@@ -56,6 +56,15 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           );
         })}
       </nav>
+
+      <div className="mt-auto border-t border-sidebar-border pt-4">
+        <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors w-full">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+          Collapse
+        </button>
+      </div>
     </div>
   );
 };
