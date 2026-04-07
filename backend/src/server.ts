@@ -3,6 +3,7 @@ import cors from "cors"
 import dotenv from "dotenv"
 import goal from "./router/goal.route.ts"
 import connectDB from "./config/db.ts"
+import auth from "./router/auth.router.ts"
 
 dotenv.config()
 
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }))
 
 // routes setup 
 app.use('/api',goal)
+app.use('/api',auth)
 
 // app starting funtion
 const startServer = () => {
