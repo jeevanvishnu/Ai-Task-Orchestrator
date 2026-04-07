@@ -6,7 +6,7 @@ import { cn } from "../../lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./alert-dialog";
 import { useAppDispatch } from "../../../app/hooks/reduxHooks";
-import { editGoalAction, regenerateGoal, editTask, deleteGoal } from "../../../app/features/goalSlice";
+import { editGoalAction, regenerateGoal, editTask, deleteGoalAction } from "../../../app/features/goalSlice";
 
 interface RoadmapViewProps {
   goalItem: any;
@@ -75,7 +75,7 @@ export const RoadmapView = ({ goalItem, onBack }: RoadmapViewProps) => {
 
   const handleDeleteTask = async () => {
     if (taskToDelete) {
-      await dispatch(deleteGoal({ id: goalItem._id, taskId: taskToDelete }));
+      await dispatch(deleteGoalAction({ id: goalItem._id, taskId: taskToDelete }));
       setTaskToDelete(null);
     }
   };

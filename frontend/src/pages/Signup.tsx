@@ -1,10 +1,15 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/layouts/AuthLayout";
-import { Loader2, User, Mail, Lock, CheckCircle2 } from "lucide-react";
+import { Loader2, User, Mail, Lock, CheckCircle2, AlertCircle } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../../app/hooks/reduxHooks";
+import { registerUser } from "../../app/features/authSlice";
 
 export const Signup = () => {
-    const [loading, setLoading] = useState(false);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const { loading, error, isAuthenticated } = useAppSelector(state => state.auth);
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -12,10 +17,16 @@ export const Signup = () => {
         agree: false
     });
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/");
+        }
+    }, [isAuthenticated, navigate]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setTimeout(() => setLoading(false), 2000);
+        const { name, email, password } = formData;
+        dispatch(registerUser({ name, email, password }));
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +42,12 @@ export const Signup = () => {
             title="Create your account" 
             subtitle="Join thousands of builders today."
         >
+            {error && (
+                <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-3 text-destructive text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <p>{error}</p>
+                </div>
+            )}
             <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="name" className="block text-sm font-bold text-foreground mb-2">

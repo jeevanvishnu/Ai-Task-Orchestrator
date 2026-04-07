@@ -1,7 +1,6 @@
 import express from "express";
 import { login, refreshToken, register } from "../controller/auth.controller.ts";
 
-
 const router = express.Router();
 
 router.post("/register", register);

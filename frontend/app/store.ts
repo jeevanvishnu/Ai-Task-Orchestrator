@@ -1,8 +1,11 @@
 import {configureStore} from "@reduxjs/toolkit"
 import goalReducer from "./features/goalSlice"
+import authReducer from "./features/authSlice"
+
 export const store = configureStore({
     reducer:{
-        goal:goalReducer
+        goal:goalReducer,
+        auth:authReducer
     }
 })
 

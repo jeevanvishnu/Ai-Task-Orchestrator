@@ -1,19 +1,28 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/layouts/AuthLayout";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../../app/hooks/reduxHooks";
+import { loginUser } from "../../app/features/authSlice";
 
 export const Login = () => {
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // Simulating login logic
-    setTimeout(() => setLoading(false), 2000);
+    dispatch(loginUser({ email, password }));
   };
 
   return (
@@ -21,6 +30,12 @@ export const Login = () => {
       title="Welcome back" 
       subtitle="Enter your credentials to access your dashboard"
     >
+      {error && (
+        <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-3 text-destructive text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email" className="block text-sm font-bold text-foreground mb-2">

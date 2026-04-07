@@ -4,6 +4,8 @@ import dotenv from "dotenv"
 import goal from "./router/goal.route.ts"
 import connectDB from "./config/db.ts"
 import auth from "./router/auth.router.ts"
+import {Auth} from "./config/betterAuth.ts"
+import { toNodeHandler } from "better-auth/node"
 
 dotenv.config()
 
@@ -18,6 +20,7 @@ app.use(express.urlencoded({ extended: true }))
 // routes setup 
 app.use('/api',goal)
 app.use('/api',auth)
+app.use("/api/auth/", toNodeHandler(Auth))
 
 // app starting funtion
 const startServer = () => {

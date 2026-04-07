@@ -43,6 +43,24 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
+// export const logout = async (req: Request, res: Response) => {
+//     try {
+//         const { refreshToken } = req.body;
+//         if(!refreshToken){
+//             return res.status(401).json({ message: "Refresh token is required" });
+//         }
+//         const decodedToken = verifyRefreshToken(refreshToken);
+//         if (!decodedToken) {
+//             return res.status(401).json({ message: "Invalid refresh token" });
+//         }
+//         const acessToken = generateAcessToken(decodedToken.userId);
+//         res.status(200).json({ acessToken });
+//     } catch (error) {
+//         console.log(error,"error in logout");
+//         res.status(500).json({ message: "Error logging out" });
+//     }
+// };
+
 // write a fuction to refresh token
 
 export const refreshToken = async (req: Request, res: Response) => {
