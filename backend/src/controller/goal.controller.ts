@@ -31,7 +31,6 @@ const cleanRoadmapResponse = (text: string) => {
 };
 
 export const createGoal = async (req: any, res: Response) => {
-    console.log("Hello i am here")   
     try {
         const { goal } = req.body;
         const userId = req.user._id; // <-- THIS LINE IS REQUIRED
