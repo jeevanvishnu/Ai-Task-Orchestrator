@@ -25,6 +25,14 @@ export const Login = () => {
     dispatch(loginUser({ email, password }));
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+     window.location.href = "http://localhost:4001/api/auth/google";
+    } catch (err) {
+      console.error("Google Sign-in Error:", err);
+    }
+  };
+
   return (
     <AuthLayout 
       title="Welcome back" 
@@ -135,7 +143,7 @@ export const Login = () => {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-3">
-          <button className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-xl shadow-sm bg-card text-sm font-bold text-foreground hover:bg-secondary/50 transition-all">
+          <button onClick={handleGoogleSignIn} className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-xl shadow-sm bg-card text-sm font-bold text-foreground hover:bg-secondary/50 transition-all">
             Google
           </button>
         </div>

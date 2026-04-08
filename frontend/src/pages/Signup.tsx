@@ -38,8 +38,8 @@ export const Signup = () => {
     };
 
     return (
-        <AuthLayout 
-            title="Create your account" 
+        <AuthLayout
+            title="Create your account"
             subtitle="Join thousands of builders today."
         >
             {error && (
