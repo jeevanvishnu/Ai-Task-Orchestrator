@@ -13,6 +13,7 @@ import { useAppDispatch } from '../app/hooks/reduxHooks';
 import { checkAuth } from '../app/features/authSlice';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated } = useAppSelector((state: RootState) => state.auth);
@@ -65,6 +66,7 @@ function App() {
 
     return (
         <Router>
+            <Toaster position="top-right" richColors />
             <AppContent />
         </Router>
     );

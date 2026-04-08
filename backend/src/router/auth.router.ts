@@ -1,7 +1,6 @@
 import express from "express";
-import { login, refreshToken, register } from "../controller/auth.controller.ts";
+import { login, refreshToken, register , logout} from "../controller/auth.controller.ts";
 import passport from "../lib/passport.ts";
-
 const router = express.Router();
 
 router.post("/register", register);
@@ -12,8 +11,6 @@ router.get("/google/callback", passport.authenticate("google", { failureRedirect
     res.redirect("http://localhost:5173");
 });
 
-
-
 router.get("/me", (req, res) => {
     if (req.isAuthenticated()) {
         res.json({ user: req.user });
@@ -22,14 +19,6 @@ router.get("/me", (req, res) => {
     }
 });
 
-router.post("/logout", (req, res) => {
-    req.logout((err) => {
-        if (err) return res.status(500).json({ message: "Logout failed" });
-        req.session.destroy(() => {
-            res.clearCookie("connect.sid");
-            res.json({ message: "Logged out successfully" });
-        });
-    });
-});
+router.get('/logout',logout)
 
 export default router;

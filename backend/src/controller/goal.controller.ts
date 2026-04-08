@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import Goal from "../model/gaols.mondel.ts";
 import { GoogleGenAI } from "@google/genai";
 import { prompt } from "../lib/prompt.ts";
+import User from "../model/user.model.ts";  
 
 // Extending Request to include Passport's user
 
@@ -289,6 +290,39 @@ export const searchGoal = async (req: any, res: Response) => {
             title: { $regex: query, $options: "i" }
         });
         res.status(200).json({ goals })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+
+// write a fuction of setting page
+
+export const getSetting = async (req: any, res: Response) => {
+    try {
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
+        }
+        res.status(200).json({ user })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+
+export const updateSetting = async (req: any, res: Response) => {
+    try {
+        const userId = req.user._id;
+        const { name, email } = req.body;
+        const updatedUser = await User.findByIdAndUpdate(userId, { name, email }, { returnDocument: "after" });
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" })
+        }
+        res.status(200).json({ updatedUser })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Internal server error" })
