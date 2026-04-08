@@ -1,8 +1,15 @@
 import mongoose from "mongoose";
+import "dotenv/config"
+import dns from "dns"
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const connectDB = async () => {
+    const URL = process.env.MONGODB_URL
+
+    console.log(URL)
     try {
-        await mongoose.connect("mongodb://localhost:27017/task-orchestrator")
+        await mongoose.connect(URL!)
         console.log("Database connected successfully")
     } catch (error) {
         console.log("Database connection failed",error)
