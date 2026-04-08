@@ -156,6 +156,26 @@ export const Signup = () => {
                 </div>
             </form>
 
+            <div className="mt-8">
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center shadow-sm">
+                        <div className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-card text-muted-foreground font-medium">Or continue with</span>
+                    </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 gap-3">
+                    <button 
+                        onClick={() => window.location.href = "http://localhost:4001/api/google"} 
+                        className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-xl shadow-sm bg-card text-sm font-bold text-foreground hover:bg-secondary/50 transition-all"
+                    >
+                        Google
+                    </button>
+                </div>
+            </div>
+
             <div className="mt-8 pt-6 border-t border-border">
                 <p className="text-center text-sm text-muted-foreground">
                     Already have an account?{" "}

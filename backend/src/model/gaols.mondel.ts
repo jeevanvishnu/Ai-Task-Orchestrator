@@ -1,16 +1,20 @@
 import mongoose from "mongoose";
 
-
 const goalSchema = new mongoose.Schema({
-    title:String,
-   goal:[{
-    heading: String,
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     title: String,
-    description: String,
-    status: { type: String, enum: ["pending", "in_progress", "completed"], default: "pending" },
-    createdAt: Date,
-    updatedAt: Date,
-   }]
+    goal: [{
+        heading: String,
+        title: String,
+        description: String,
+        status: { type: String, enum: ["pending", "in_progress", "completed"], default: "pending" },
+        createdAt: Date,
+        updatedAt: Date,
+    }]
 }, { timestamps: true })
 
 const Goal = mongoose.model("Goal", goalSchema)

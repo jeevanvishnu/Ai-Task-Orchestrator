@@ -14,10 +14,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@better-auth/infra": "^0.1.14",
     "@google/genai": "^1.48.0",
     "@types/express": "^5.0.6",
     "bcrypt": "^6.0.0",
-    "better-auth": "^1.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
@@ -26,7 +26,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.1",
     "mongoose": "^9.4.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "passport": "^0.7.0",
+    "passport-google-oauth": "^2.0.0",
+    "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -8,29 +8,60 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: AuthState = {
-  user: JSON.parse(localStorage.getItem("user") || "null"),
-  token: localStorage.getItem("acessToken"),
-  refreshToken: localStorage.getItem("refreshToken"),
-  isAuthenticated: !!localStorage.getItem("acessToken"),
-  loading: false,
+  user: null,
+  isAuthenticated: false,
+  loading: true, // Start with loading while we check the session
   error: null,
 };
 
-const BASE_URL = "http://localhost:4001/api";
+const BASE_URL = "http://localhost:4001/api/auth";
+
+// Helper to fetch with credentials (cookies)
+const fetchWithAuth = (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: "include", // Ensure cookies are sent
+    headers: {
+      ...options.headers,
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const checkAuth = createAsyncThunk("auth/check", async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetchWithAuth(`${BASE_URL}/me`);
+    const data = await response.json();
+    if (!response.ok) return rejectWithValue(data.message || "Session expired");
+    return data;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
+  }
+});
+
+export const refreshTokenAction = createAsyncThunk("auth/refresh", async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetchWithAuth(`${BASE_URL}/refresh`, {
+        method: "POST",
+    });
+    const data = await response.json();
+    if (!response.ok) return rejectWithValue(data.message || "Session expired");
+    return data;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
+  }
+});
 
 export const registerUser = createAsyncThunk("auth/register", async (userData: any, { rejectWithValue }) => {
   try {
-    const response = await fetch(`${BASE_URL}/register`, {
+    const response = await fetchWithAuth(`${BASE_URL}/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
     const data = await response.json();
@@ -43,9 +74,8 @@ export const registerUser = createAsyncThunk("auth/register", async (userData: a
 
 export const loginUser = createAsyncThunk("auth/login", async (userData: any, { rejectWithValue }) => {
   try {
-    const response = await fetch(`${BASE_URL}/login`, {
+    const response = await fetchWithAuth(`${BASE_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
     const data = await response.json();
@@ -62,16 +92,39 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.user = null;
-      state.token = null;
-      state.refreshToken = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("user");
-      localStorage.removeItem("acessToken");
-      localStorage.removeItem("refreshToken");
     }
   },
   extraReducers: (builder) => {
     builder
+      // checkAuth
+      .addCase(checkAuth.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      // refreshTokenAction
+      .addCase(refreshTokenAction.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(refreshTokenAction.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(refreshTokenAction.rejected, (state) => {
+        state.loading = false;
+        // We don't necessarily want to log out on a failed refresh if it was just a background check
+      })
+      // registerUser
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -79,17 +132,13 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.acessToken;
-        state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("acessToken", action.payload.acessToken);
-        localStorage.setItem("refreshToken", action.payload.refreshToken);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
+      // loginUser
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -97,12 +146,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.acessToken;
-        state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("acessToken", action.payload.acessToken);
-        localStorage.setItem("refreshToken", action.payload.refreshToken);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

@@ -35,23 +35,22 @@ const initialState: GoalState = {
 
 const BASE_URL = "http://localhost:4001/api";
 
-const getAuthHeader = (state: RootState): Record<string, string> => {
-    const token = state.auth.token;
-    return token ? { "Authorization": `Bearer ${token}` } : {};
+const fetchWithAuth = (url: string, options: RequestInit = {}) => {
+    return fetch(url, {
+        ...options,
+        credentials: "include",
+        headers: {
+            ...options.headers,
+            "Content-Type": "application/json",
+        },
+    });
 };
 
 export const getDashboard = createAsyncThunk(
     "goal/getDashboard",
-    async (_, { rejectWithValue, getState }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/dashboard`, {
-                method: "GET",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
-            });
+            const response = await fetchWithAuth(`${BASE_URL}/dashboard`);
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to fetch dashboard");
             return data.goals; 
@@ -63,15 +62,10 @@ export const getDashboard = createAsyncThunk(
 
 export const createGoalAction = createAsyncThunk(
     "goal/createGoal",
-    async (goalTitle: string, { rejectWithValue, getState }) => {
+    async (goalTitle: string, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/dashboard`, {
+            const response = await fetchWithAuth(`${BASE_URL}/dashboard`, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
                 body: JSON.stringify({ goal: goalTitle }),
             });
             const data = await response.json();
@@ -85,16 +79,9 @@ export const createGoalAction = createAsyncThunk(
 
 export const getGoals = createAsyncThunk(
     "goal/getGoals",
-    async (_, { rejectWithValue, getState }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/goals`, {
-                method: "GET",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
-            });
+            const response = await fetchWithAuth(`${BASE_URL}/goals`);
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to fetch goals");
             return data.goals;
@@ -106,16 +93,9 @@ export const getGoals = createAsyncThunk(
 
 export const getGoalById = createAsyncThunk(
     "goal/getGoalById",
-    async (id: string, { rejectWithValue, getState }) => {
+    async (id: string, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/goals/${id}`, {
-                method: "GET",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
-            });
+            const response = await fetchWithAuth(`${BASE_URL}/goals/${id}`);
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to fetch goal");
             return data.goal;
@@ -127,15 +107,10 @@ export const getGoalById = createAsyncThunk(
 
 export const editGoalAction = createAsyncThunk(
     "goal/editGoal",
-    async ({ id, title }: { id: string, title: string }, { rejectWithValue, getState }) => {
+    async ({ id, title }: { id: string, title: string }, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/goals/${id}`, {
+            const response = await fetchWithAuth(`${BASE_URL}/goals/${id}`, {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
                 body: JSON.stringify({ title }),
             });
             const data = await response.json();
@@ -149,15 +124,10 @@ export const editGoalAction = createAsyncThunk(
 
 export const regenerateGoal = createAsyncThunk(
     "goal/regenerateGoal",
-    async (id: string, { rejectWithValue, getState }) => {
+    async (id: string, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/goals/${id}/regenerate`, {
+            const response = await fetchWithAuth(`${BASE_URL}/goals/${id}/regenerate`, {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
             });
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to regenerate goal");
@@ -170,20 +140,15 @@ export const regenerateGoal = createAsyncThunk(
 
 export const editTask = createAsyncThunk(
     "goal/editTask",
-    async ({ id, taskId, title, description, status }: { id: string, taskId: string, title?: string, description?: string, status?: string }, { rejectWithValue, getState }) => {
+    async ({ id, taskId, title, description, status }: { id: string, taskId: string, title?: string, description?: string, status?: string }, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
             const body: any = {};
             if (title !== undefined) body.title = title;
             if (description !== undefined) body.description = description;
             if (status !== undefined) body.status = status;
 
-            const response = await fetch(`${BASE_URL}/goals/${id}/task/${taskId}`, {
+            const response = await fetchWithAuth(`${BASE_URL}/goals/${id}/task/${taskId}`, {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
                 body: JSON.stringify(body),
             });
             const data = await response.json();
@@ -197,15 +162,10 @@ export const editTask = createAsyncThunk(
 
 export const deleteGoalAction = createAsyncThunk(
     "goal/deleteGoal",
-    async ({ id, taskId }: { id: string, taskId: string }, { rejectWithValue, getState }) => {
+    async ({ id, taskId }: { id: string, taskId: string }, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/goals/${id}/task/${taskId}`, {
+            const response = await fetchWithAuth(`${BASE_URL}/goals/${id}/task/${taskId}`, {
                 method: "DELETE",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
             });
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to delete task");
@@ -218,15 +178,10 @@ export const deleteGoalAction = createAsyncThunk(
 
 export const deleteDashboardGoal = createAsyncThunk(
     "goal/deleteDashboardGoal",
-    async (id: string, { rejectWithValue, getState }) => {
+    async (id: string, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/goals/${id}`, {
+            const response = await fetchWithAuth(`${BASE_URL}/goals/${id}`, {
                 method: "DELETE",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
             });
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to delete goal");
@@ -239,16 +194,9 @@ export const deleteDashboardGoal = createAsyncThunk(
 
 export const getHistory = createAsyncThunk(
     "goal/getHistory",
-    async (_, { rejectWithValue, getState }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/history`, {
-                method: "GET",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
-            });
+            const response = await fetchWithAuth(`${BASE_URL}/history`);
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Failed to fetch history");
             return data;
@@ -260,16 +208,9 @@ export const getHistory = createAsyncThunk(
 
 export const searchGoal = createAsyncThunk(
     "goal/searchGoal",
-    async (query: string, { rejectWithValue, getState }) => {
+    async (query: string, { rejectWithValue }) => {
         try {
-            const state = getState() as RootState;
-            const response = await fetch(`${BASE_URL}/search?query=${query}`, {
-                method: "GET",
-                headers: { 
-                    "Content-Type": "application/json",
-                    ...getAuthHeader(state)
-                },
-            });
+            const response = await fetchWithAuth(`${BASE_URL}/search?query=${query}`);
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.message || "Search failed");
             return data.goals;

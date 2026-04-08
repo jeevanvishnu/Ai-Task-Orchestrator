@@ -3,9 +3,12 @@ import Goal from "../model/gaols.mondel.ts";
 import { GoogleGenAI } from "@google/genai";
 import { prompt } from "../lib/prompt.ts";
 
-export const getdashboard = async (req: Request, res: Response) => {
+// Extending Request to include Passport's user
+
+export const getdashboard = async (req: any, res: Response) => {
     try {
-        const goals = await Goal.find().sort({ createdAt: -1 })
+        const userId = req.user._id;
+        const goals = await Goal.find({ user: userId }).sort({ createdAt: -1 })
         if (!goals) {
             return res.status(404).json({ message: "Goals not found" })
         }
@@ -22,14 +25,17 @@ const cleanRoadmapResponse = (text: string) => {
     return text
         .replace(/```json/gi, "")
         .replace(/```/gi, "")
-        .replace(/\t/g, " ") 
-        .replace(/\r?\n|\r/g, " ") 
+        .replace(/\t/g, " ")
+        .replace(/\r?\n|\r/g, " ")
         .trim();
 };
 
-export const createGoal = async (req: Request, res: Response) => {
+export const createGoal = async (req: any, res: Response) => {
+    console.log("Hello i am here")   
     try {
         const { goal } = req.body;
+        const userId = req.user._id; // <-- THIS LINE IS REQUIRED
+
         if (!goal) {
             return res.status(400).json({ message: "Goal is required" });
         }
@@ -39,7 +45,7 @@ export const createGoal = async (req: Request, res: Response) => {
         });
 
         const result = await genAI.models.generateContent({
-            model: "gemini-3-flash-preview", 
+            model: "gemini-3-flash-preview",
             contents: prompt + "\n\nUser Goal: " + goal,
         });
 
@@ -58,8 +64,9 @@ export const createGoal = async (req: Request, res: Response) => {
 
             const savedTasks = await Goal.create(
                 {
-                    title:goal,
-                    goal:tasksToSave
+                    user: userId, // <-- Uses the userId defined above
+                    title: goal,
+                    goal: tasksToSave
                 }
             );
 
@@ -74,18 +81,19 @@ export const createGoal = async (req: Request, res: Response) => {
 
     } catch (error: any) {
         console.error("Error in AI Goal Creation:", error);
-        res.status(500).json({ 
-            message: "Internal server error during roadmap generation", 
-            error: error.message 
+        res.status(500).json({
+            message: "Internal server error during roadmap generation",
+            error: error.message
         });
     }
 }
 
 // write a function to get goal 
 
-export const getGoal = async (req: Request, res: Response) => {
+export const getGoal = async (req:any, res: Response) => {
     try {
-        const goals = await Goal.find()
+        const userId = req.user._id;
+        const goals = await Goal.find({ user: userId })
         if (!goals) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -96,15 +104,13 @@ export const getGoal = async (req: Request, res: Response) => {
     }
 }
 
-
-
-
 // write a function to get goal by id
 
-export const getGoalById = async (req: Request, res: Response) => {
+export const getGoalById = async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        const goal = await Goal.findById(id);
+        const userId = req.user._id;
+        const goal = await Goal.findOne({ _id: id, user: userId });
         if (!goal) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -117,11 +123,16 @@ export const getGoalById = async (req: Request, res: Response) => {
 
 // write a function edit goal by id
 
-export const editGoal = async (req: Request, res: Response) => {
+export const editGoal = async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const { title } = req.body;
-        const updatedGoal = await Goal.findByIdAndUpdate(id, { title }, { returnDocument: "after" });
+        const userId = req.user._id;
+        const updatedGoal = await Goal.findOneAndUpdate(
+            { _id: id, user: userId },
+            { title },
+            { returnDocument: "after" }
+        );
         if (!updatedGoal) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -134,10 +145,11 @@ export const editGoal = async (req: Request, res: Response) => {
 
 // write a fuction to regenerate goal by id
 
-export const regenerateGoal = async (req: Request, res: Response) => {
+export const regenerateGoal = async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        const goal = await Goal.findById(id);
+        const userId = req.user._id;
+        const goal = await Goal.findOne({ _id: id, user: userId });
         if (!goal) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -145,7 +157,7 @@ export const regenerateGoal = async (req: Request, res: Response) => {
             apiKey: process.env.GEMINI_API_KEY as string
         });
         const result = await genAI.models.generateContent({
-            model: "gemini-3-flash-preview", 
+            model: "gemini-3-flash-preview",
             contents: prompt + "\n\nUser Goal: " + goal.title,
         });
         const rawText = result.text;
@@ -157,26 +169,31 @@ export const regenerateGoal = async (req: Request, res: Response) => {
                 title: task.title,
                 description: task.description,
             }));
-            const updatedGoal = await Goal.findByIdAndUpdate(id, { goal: tasksToSave }, { returnDocument: "after" });
+            const updatedGoal = await Goal.findOneAndUpdate(
+                { _id: id, user: userId },
+                { goal: tasksToSave },
+                { returnDocument: "after" }
+            );
             res.status(200).json({ updatedGoal })
         } else {
             throw new Error("AI response structure is invalid (missing tasks array)");
         }
     } catch (error: any) {
         console.error("Error in AI Goal Regeneration:", error);
-        res.status(500).json({ 
-            message: "Internal server error during roadmap regeneration", 
-            error: error.message 
+        res.status(500).json({
+            message: "Internal server error during roadmap regeneration",
+            error: error.message
         });
     }
 }
 
 // write a funtion to edit task by id
 
-export const editTask = async (req: Request, res: Response) => {
+export const editTask = async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
         const { title, description, status } = req.body;
+        const userId = req.user._id;
         
         const updateFields: any = {};
         if (title !== undefined) updateFields["goal.$.title"] = title;
@@ -188,7 +205,7 @@ export const editTask = async (req: Request, res: Response) => {
         }
 
         const updatedGoal = await Goal.findOneAndUpdate(
-            { _id: id, "goal._id": taskId },
+            { _id: id, user: userId, "goal._id": taskId },
             { $set: updateFields },
             { returnDocument: "after" }
         );
@@ -206,18 +223,18 @@ export const editTask = async (req: Request, res: Response) => {
 
 // write a function to delete goal by id
 
-export const deleteGoal = async (req: Request, res: Response) => {
+export const deleteGoal = async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
-        const deletedGoal = await Goal.findByIdAndUpdate(
-            id,
+        const userId = req.user._id;
+        const deletedGoal = await Goal.findOneAndUpdate(
+            { _id: id, user: userId },
             { $pull: { goal: { _id: taskId } } },
             { returnDocument: "after" }
         );
         if (!deletedGoal) {
             return res.status(404).json({ message: "Goal not found" })
         }
-        // Send back the updated document
         res.status(200).json({ deletedTask: deletedGoal })
     } catch (error) {
         console.log(error)
@@ -226,10 +243,11 @@ export const deleteGoal = async (req: Request, res: Response) => {
 }
 
 // write a function to delete entire goal by id
-export const deleteDashboardGoal = async (req: Request, res: Response) => {
+export const deleteDashboardGoal = async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        const deletedGoal = await Goal.findByIdAndDelete(id);
+        const userId = req.user._id;
+        const deletedGoal = await Goal.findOneAndDelete({ _id: id, user: userId });
         if (!deletedGoal) {
             return res.status(404).json({ message: "Goal not found" })
         }
@@ -242,16 +260,14 @@ export const deleteDashboardGoal = async (req: Request, res: Response) => {
 
 // write a funciton  get history of goals
 
-export const getHistory = async (req: Request, res: Response) => {
+export const getHistory = async (req: any, res: Response) => {
     try {
-        const goals = await Goal.find().sort({ createdAt: -1 });
+        const userId = req.user._id;
+        const goals = await Goal.find({ user: userId }).sort({ createdAt: -1 });
 
-        const inprogress = await Goal.find({ "goal.status": "in_progress" });
-        const completed = await Goal.find({ "goal.status": "completed" });
+        const inprogress = await Goal.find({ user: userId, "goal.status": "in_progress" });
+        const completed = await Goal.find({ user: userId, "goal.status": "completed" });
         
-        if (!goals) {
-            return res.status(404).json({ message: "Goal not found" })
-        }
         res.status(200).json({ goals, inprogress, completed })
     } catch (error) {
         console.log(error)
@@ -262,20 +278,20 @@ export const getHistory = async (req: Request, res: Response) => {
 
 // write a fuction to search goal by title
 
-export const searchGoal = async (req: Request, res: Response) => {
+export const searchGoal = async (req: any, res: Response) => {
     try {
         const query = req.query.query as string;
+        const userId = req.user._id;
         if (!query) {
              return res.status(400).json({ message: "Search query is required" });
         }
-        const goals = await Goal.find({ title: { $regex: query, $options: "i" } });
+        const goals = await Goal.find({
+            user: userId,
+            title: { $regex: query, $options: "i" }
+        });
         res.status(200).json({ goals })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Internal server error" })
     }
 }
-
-
-// write  a fuction to setting of goal
-

@@ -4,8 +4,10 @@ import dotenv from "dotenv"
 import goal from "./router/goal.route.ts"
 import connectDB from "./config/db.ts"
 import auth from "./router/auth.router.ts"
-import { Auth } from "./config/betterAuth.ts"
-import { toNodeHandler } from "better-auth/node"
+import session from "express-session"
+import passport from "passport"
+import "./lib/passport.ts"
+
 
 dotenv.config()
 
@@ -19,11 +21,19 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(session({
+    secret: process.env.JWT_SECRET || "secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } 
+}))
+app.use(passport.initialize())
+app.use(passport.session())
 
 // routes setup 
 app.use('/api', goal)
-app.use('/api', auth)
-app.use("/api", toNodeHandler(Auth))
+app.use('/api/auth', auth)
+
 
 // app starting funtion
 const startServer = () => {

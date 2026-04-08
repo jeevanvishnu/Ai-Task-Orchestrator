@@ -9,6 +9,10 @@ import { useAppSelector } from '../app/hooks/reduxHooks';
 import type { RootState } from '../app/store';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { useAppDispatch } from '../app/hooks/reduxHooks';
+import { checkAuth } from '../app/features/authSlice';
+import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated } = useAppSelector((state: RootState) => state.auth);
@@ -44,6 +48,21 @@ const AppContent = () => {
 }
 
 function App() {
+    const dispatch = useAppDispatch();
+    const { loading, isAuthenticated } = useAppSelector((state: RootState) => state.auth);
+
+    useEffect(() => {
+        dispatch(checkAuth());
+    }, [dispatch]);
+
+    if (loading && !isAuthenticated) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
     return (
         <Router>
             <AppContent />
