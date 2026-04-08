@@ -27,7 +27,7 @@ export const Login = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-     window.location.href = "http://localhost:4001/api/auth/google";
+     window.location.href = "https://ai-task-orchestrator-u46k.onrender.com/api/auth/google";
     } catch (err) {
       console.error("Google Sign-in Error:", err);
     }

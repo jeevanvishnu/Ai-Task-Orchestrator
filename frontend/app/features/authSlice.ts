@@ -21,7 +21,7 @@ const initialState: AuthState = {
 };
 
 // Define all base URLs clearly
-const API_ROOT = "http://localhost:4001/api";
+const API_ROOT = "https://ai-task-orchestrator-u46k.onrender.com/api";
 const AUTH_URL = `${API_ROOT}/auth`;
 const SETTINGS_URL = `${API_ROOT}/settings`;
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from "@hello-pangea/dnd";
-import { ChevronRight, Edit2, RefreshCw, Calendar, MoreHorizontal, Check, Circle, GripVertical, CheckSquare, Loader2 } from "lucide-react";
+import { ChevronRight, Edit2, RefreshCw, Calendar, MoreHorizontal, Check, GripVertical, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./alert-dialog";

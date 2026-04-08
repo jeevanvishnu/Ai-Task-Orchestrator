@@ -13,14 +13,14 @@ export const GoalRoadmap = () => {
 
   useEffect(() => {
     if (id) {
-      const existingGoal = goals.find((g) => g._id === id);
+      const existingGoal = goals.find((g: any) => g._id === id);
       if (!existingGoal) {
         dispatch(getGoalById(id));
       }
     }
   }, [dispatch, id, goals.length]);
 
-  const goalItem = goals.find((g) => g._id === id);
+  const goalItem = goals.find((g: any) => g._id === id);
 
   if (loading && goals.length === 0) {
     return (

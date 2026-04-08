@@ -168,7 +168,7 @@ export const Signup = () => {
 
                 <div className="mt-6 grid grid-cols-1 gap-3">
                     <button 
-                        onClick={() => window.location.href = "http://localhost:4001/api/google"} 
+                        onClick={() => window.location.href = "https://ai-task-orchestrator-u46k.onrender.com/api/auth/google"} 
                         className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-xl shadow-sm bg-card text-sm font-bold text-foreground hover:bg-secondary/50 transition-all"
                     >
                         Google

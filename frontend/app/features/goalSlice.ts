@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { RootState } from "../store";
 
 export interface GoalSubTask {
     heading: string;
@@ -33,7 +32,7 @@ const initialState: GoalState = {
     error: null,
 }
 
-const BASE_URL = "http://localhost:4001/api";
+const BASE_URL = "https://ai-task-orchestrator-u46k.onrender.com/api";
 
 const fetchWithAuth = (url: string, options: RequestInit = {}) => {
     return fetch(url, {

@@ -41,7 +41,7 @@ export const History = () => {
     return goals;
   };
 
-  const filteredGoals = getDisplayGoals().filter(goal => {
+  const filteredGoals = getDisplayGoals().filter((goal: any) => {
     // Second layer of filtering in case backend returns everything in history.goals 
     // or if the frontend needs to verify status dynamically
     const totalTasks = goal.goal?.length || 0;
@@ -130,7 +130,7 @@ export const History = () => {
              <p className="text-muted-foreground font-medium italic">Searching your history...</p>
           </div>
         ) : filteredGoals.length > 0 ? (
-          filteredGoals.map((goal) => {
+          filteredGoals.map((goal: any) => {
             const totalTasks = goal.goal?.length || 0;
             const completedTasks = goal.goal?.filter((t: any) => t.status === "completed").length || 0;
             const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;

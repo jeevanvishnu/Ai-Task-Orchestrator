@@ -1,4 +1,4 @@
-import { Calendar, CheckCircle2, Clock, MoreHorizontal } from "lucide-react";
+import { Calendar, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import { Button } from "../../../components/ui/button";
 

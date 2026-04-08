@@ -35,7 +35,7 @@ export const MyGoals = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {goals.map((goalItem, i) => {
+          {goals.map((goalItem: any, i: number) => {
             const totalTasks = goalItem.goal?.length || 0;
             const completedTasks = goalItem.goal?.filter((t: any) => t.status === "completed").length || 0;
             const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
