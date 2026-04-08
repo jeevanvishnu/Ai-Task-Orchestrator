@@ -16,11 +16,14 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  loading: true, // Start with loading while we check the session
+  loading: true, 
   error: null,
 };
 
-const BASE_URL = "http://localhost:4001/api/auth";
+// Define all base URLs clearly
+const API_ROOT = "http://localhost:4001/api";
+const AUTH_URL = `${API_ROOT}/auth`;
+const SETTINGS_URL = `${API_ROOT}/settings`;
 
 // Helper to fetch with credentials (cookies)
 const fetchWithAuth = (url: string, options: RequestInit = {}) => {
@@ -36,7 +39,7 @@ const fetchWithAuth = (url: string, options: RequestInit = {}) => {
 
 export const checkAuth = createAsyncThunk("auth/check", async (_, { rejectWithValue }) => {
   try {
-    const response = await fetchWithAuth(`${BASE_URL}/me`);
+    const response = await fetchWithAuth(`${AUTH_URL}/me`);
     const data = await response.json();
     if (!response.ok) return rejectWithValue(data.message || "Session expired");
     return data;
@@ -47,8 +50,8 @@ export const checkAuth = createAsyncThunk("auth/check", async (_, { rejectWithVa
 
 export const refreshTokenAction = createAsyncThunk("auth/refresh", async (_, { rejectWithValue }) => {
   try {
-    const response = await fetchWithAuth(`${BASE_URL}/refresh`, {
-        method: "POST",
+    const response = await fetchWithAuth(`${AUTH_URL}/refresh`, {
+      method: "POST",
     });
     const data = await response.json();
     if (!response.ok) return rejectWithValue(data.message || "Session expired");
@@ -60,7 +63,7 @@ export const refreshTokenAction = createAsyncThunk("auth/refresh", async (_, { r
 
 export const registerUser = createAsyncThunk("auth/register", async (userData: any, { rejectWithValue }) => {
   try {
-    const response = await fetchWithAuth(`${BASE_URL}/register`, {
+    const response = await fetchWithAuth(`${AUTH_URL}/register`, {
       method: "POST",
       body: JSON.stringify(userData),
     });
@@ -74,7 +77,7 @@ export const registerUser = createAsyncThunk("auth/register", async (userData: a
 
 export const loginUser = createAsyncThunk("auth/login", async (userData: any, { rejectWithValue }) => {
   try {
-    const response = await fetchWithAuth(`${BASE_URL}/login`, {
+    const response = await fetchWithAuth(`${AUTH_URL}/login`, {
       method: "POST",
       body: JSON.stringify(userData),
     });
@@ -86,18 +89,48 @@ export const loginUser = createAsyncThunk("auth/login", async (userData: any, { 
   }
 });
 
+export const logoutUser = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetchWithAuth(`${AUTH_URL}/logout`);
+    const data = await response.json();
+    if (!response.ok) return rejectWithValue(data.message || "Logout failed");
+    return data;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
+  }
+});
+
+export const fetchUserSettings = createAsyncThunk("auth/fetchSettings", async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetchWithAuth(SETTINGS_URL);
+      const data = await response.json();
+      if (!response.ok) return rejectWithValue(data.message || "Failed to fetch settings");
+      return data.user;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+});
+
+export const updateUserSettings = createAsyncThunk("auth/updateSettings", async (userData: { name: string, email: string }, { rejectWithValue }) => {
+  try {
+    const response = await fetchWithAuth(SETTINGS_URL, {
+      method: "PUT",
+      body: JSON.stringify(userData),
+    });
+    const data = await response.json();
+    if (!response.ok) return rejectWithValue(data.message || "Update failed");
+    return data.updatedUser;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-    }
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      // checkAuth
       .addCase(checkAuth.pending, (state) => {
         state.loading = true;
       })
@@ -111,49 +144,34 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       })
-      // refreshTokenAction
-      .addCase(refreshTokenAction.pending, (state) => {
-        state.loading = true;
-      })
       .addCase(refreshTokenAction.fulfilled, (state, action) => {
-        state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
-      })
-      .addCase(refreshTokenAction.rejected, (state) => {
-        state.loading = false;
-        // We don't necessarily want to log out on a failed refresh if it was just a background check
-      })
-      // registerUser
-      .addCase(registerUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
       })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      // loginUser
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
         state.loading = false;
-        state.error = action.payload as string;
+      })
+      .addCase(fetchUserSettings.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.loading = false;
+      })
+      .addCase(updateUserSettings.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.loading = false;
       });
   }
 });
 
-export const { logout } = authSlice.actions;
 export default authSlice.reducer;

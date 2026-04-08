@@ -1,14 +1,16 @@
-import { Search, ChevronDown, Menu, X } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useAppDispatch } from "../../../app/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks/reduxHooks";
 import { searchGoal, getDashboard } from "../../../app/features/goalSlice";
 import { useNavigate, useLocation } from "react-router-dom";
+import type { RootState } from "../../../app/store";
 
 interface TopNavProps {
   onMenuClick?: () => void;
 }
 
 export const TopNav = ({ onMenuClick }: TopNavProps) => {
+  const { user } = useAppSelector((state: RootState) => state.auth);
   const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -61,14 +63,15 @@ export const TopNav = ({ onMenuClick }: TopNavProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3 cursor-pointer hover:opacity-80 transition-opacity ml-4">
-        <img
-          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop"
-          alt="User Profile"
-          className="w-8 h-8 rounded-full object-cover border border-border"
-        />
-        <span className="hidden md:block text-sm font-medium text-foreground">Sarah Jenkins</span>
-        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+      <div
+        className="flex items-center gap-2 md:gap-3 cursor-pointer hover:opacity-80 transition-opacity ml-4"
+        onClick={() => navigate("/settings")}
+      >
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-border">
+          {user?.name?.[0].toUpperCase() || "?"}
+        </div>
+        <span className="hidden md:block text-sm font-medium text-foreground">{user?.name || "User"}</span>
+
       </div>
     </header>
   );

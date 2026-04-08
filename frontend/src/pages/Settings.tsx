@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { Button } from "../components/ui/button";
 import { SettingsSidebar } from "../features/settings/components/SettingsSidebar";
 import { ProfileForm } from "../features/settings/components/ProfileForm";
 import { AppearanceSettings } from "../features/settings/components/AppearanceSettings";
@@ -26,16 +25,6 @@ export const Settings = () => {
             <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
               <ProfileForm />
               <AppearanceSettings />
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-4 pt-10 border-t border-border/60">
-                <Button variant="outline" size="lg" className="font-bold px-8">
-                  Discard changes
-                </Button>
-                <Button variant="default" size="lg" className="font-bold px-8 shadow-md">
-                  Save changes
-                </Button>
-              </div>
             </div>
           )}
 

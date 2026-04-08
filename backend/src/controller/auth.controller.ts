@@ -45,6 +45,16 @@ export const login = async (req: any, res: Response) => {
     }
 };
 
+export const logout = async (req: any, res: Response) => {
+    req.logout((err: any) => {
+        if (err) return res.status(500).json({ message: "Logout failed" });
+        req.session.destroy(() => {
+            res.clearCookie("connect.sid");
+            res.status(200).json({ message: "User logged out successfully" });
+        });
+    });
+};
+
 export const refreshToken = async (req: any, res: Response) => {
     try {
         if (req.isAuthenticated()) {

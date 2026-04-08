@@ -1,5 +1,5 @@
 import express from "express"
-import { createGoal, getdashboard, getGoal, getGoalById, editGoal, regenerateGoal, editTask, deleteGoal, deleteDashboardGoal, getHistory , searchGoal } from "../controller/goal.controller.ts"
+import { createGoal, getdashboard,getSetting, getGoal, getGoalById, editGoal, regenerateGoal, editTask, deleteGoal, deleteDashboardGoal, getHistory , searchGoal , updateSetting } from "../controller/goal.controller.ts"
 import { authMiddleware } from "../../middleware/auth.middleware.ts"
 
 const router = express.Router()
@@ -15,5 +15,8 @@ router.delete("/goals/:id/task/:taskId", authMiddleware, deleteGoal)
 router.delete("/goals/:id", authMiddleware, deleteDashboardGoal)
 router.get("/history", authMiddleware, getHistory)
 router.get("/search", authMiddleware, searchGoal)
+router.get("/settings", authMiddleware, getSetting)
+router.put("/settings", authMiddleware, updateSetting)
+
 
 export default router
