@@ -44,11 +44,16 @@ export const createGoal = async (req: any, res: Response) => {
         }
 
 
+     if (!process.env.OPENAPI_KEY) {
+         console.error("ERROR: OPENAPI_KEY is not defined in environment variables!");
+     }
+
      const response = await fetch('https://openrouter.ai/api/v1/chat/completions',{
         method:'POST',
         headers:{
-            'Authorization':`Bearer ${process.env.OPENAPI_KEY}`,
+            'Authorization':`Bearer ${process.env.OPENAPI_KEY || ""}`,
             'Content-Type':'application/json'
+           
         },
         body:JSON.stringify({
             model:"openai/gpt-oss-20b:free",
@@ -183,11 +188,16 @@ export const regenerateGoal = async (req: any, res: Response) => {
         if (!goal) {
             return res.status(404).json({ message: "Goal not found" })
         }
+       if (!process.env.OPENAPI_KEY) {
+           console.error("ERROR: OPENAPI_KEY is not defined in environment variables!");
+       }
+
        const response = await fetch('https://openrouter.ai/api/v1/chat/completions',{
         method:'POST',
         headers:{
-            'Authorization':`Bearer ${process.env.OPENAPI_KEY}`,
-            'Content-Type':'application/json'
+            'Authorization':`Bearer ${process.env.OPENAPI_KEY || ""}`,
+            'Content-Type':'application/json',
+          
         },
         body:JSON.stringify({
             model:'openai/gpt-oss-20b:free',
