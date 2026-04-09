@@ -3,7 +3,8 @@ import Goal from "../model/gaols.mondel.ts";
 import OpenAI from "openai";
 import { prompt } from "../lib/prompt.ts";
 import User from "../model/user.model.ts";  
-
+import dotenv from "dotenv";
+dotenv.config();
 // Extending Request to include Passport's user
 
 export const getdashboard = async (req: any, res: Response) => {
@@ -18,6 +19,7 @@ export const getdashboard = async (req: any, res: Response) => {
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Internal server error" })
+        
     }
 }
 
@@ -151,6 +153,7 @@ export const editGoal = async (req: any, res: Response) => {
 // write a fuction to regenerate goal by id
 
 export const regenerateGoal = async (req: any, res: Response) => {
+
     try {
         const { id } = req.params;
         const userId = req.user._id;
