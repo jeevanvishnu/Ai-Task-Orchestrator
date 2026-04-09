@@ -34,7 +34,7 @@ const cleanRoadmapResponse = (text: string) => {
 };
 
 export const createGoal = async (req: any, res: Response) => {
-    console.log("I am here");
+    console.log(process.env.OPENAPI_KEY,"I am here");
     try {
         const { goal } = req.body;
         const userId = req.user._id; 
@@ -56,7 +56,7 @@ export const createGoal = async (req: any, res: Response) => {
            
         },
         body:JSON.stringify({
-            model:"openai/gpt-oss-20b:free",
+            model:"meta-llama/llama-3-8b-instruct",
             messages:[
                 {
                     role:'user',
@@ -200,7 +200,7 @@ export const regenerateGoal = async (req: any, res: Response) => {
           
         },
         body:JSON.stringify({
-            model:'openai/gpt-oss-20b:free',
+            model:'meta-llama/llama-3-8b-instruct',
             messages:[
                 {
                     role:'user',
