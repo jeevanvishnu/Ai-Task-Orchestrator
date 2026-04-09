@@ -27,6 +27,7 @@
     "mongodb": "^7.1.1",
     "mongoose": "^9.4.1",
     "nodemon": "^3.1.14",
+    "openai": "^6.34.0",
     "passport": "^0.7.0",
     "passport-google-oauth": "^2.0.0",
     "passport-google-oauth20": "^2.0.0",

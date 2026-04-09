@@ -7,7 +7,7 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const connectDB = async () => {
     const URL = process.env.MONGODB_URL
 
-    console.log(URL)
+
     try {
         await mongoose.connect(URL!)
         console.log("Database connected successfully")

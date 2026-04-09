@@ -5,7 +5,7 @@ import { authMiddleware } from "../../middleware/auth.middleware.ts"
 const router = express.Router()
 
 router.get("/dashboard", authMiddleware, getdashboard)
-router.post("/dashboard", authMiddleware, createGoal)
+router.post("/dashboard", createGoal)
 router.get("/goals", authMiddleware, getGoal)
 router.get("/goals/:id", authMiddleware, getGoalById)
 router.put("/goals/:id", authMiddleware, editGoal)

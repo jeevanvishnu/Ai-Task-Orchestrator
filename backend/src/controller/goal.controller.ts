@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import Goal from "../model/gaols.mondel.ts";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { prompt } from "../lib/prompt.ts";
 import User from "../model/user.model.ts";  
 
@@ -34,21 +34,26 @@ const cleanRoadmapResponse = (text: string) => {
 export const createGoal = async (req: any, res: Response) => {
     try {
         const { goal } = req.body;
-        const userId = req.user._id; // <-- THIS LINE IS REQUIRED
+        const userId = req.user._id; 
 
         if (!goal) {
             return res.status(400).json({ message: "Goal is required" });
         }
 
-        const genAI = new GoogleGenAI({
-            apiKey: process.env.GEMINI_API_KEY as string
-        });
+        const openai = new OpenAI({
+            apiKey:process.env.OPENAPI_KEY,
+            baseURL:'https://integrate.api.nvidia.com/v1'
+        })
 
-        const result = await genAI.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt + "\n\nUser Goal: " + goal,
-        });
-
+       const resuult = await openai.chat.completions.create({
+        model:'stepfun-ai/step-3.5-flash',
+        messages:[
+            {
+                role:'user',
+                content:prompt + "\n\nUser Goal: " + goal,
+            }
+        ]
+       })
         const rawText = result.text;
         const cleanedText = cleanRoadmapResponse(rawText);
 
@@ -64,7 +69,7 @@ export const createGoal = async (req: any, res: Response) => {
 
             const savedTasks = await Goal.create(
                 {
-                    user: userId, // <-- Uses the userId defined above
+                    user: userId, 
                     title: goal,
                     goal: tasksToSave
                 }
@@ -153,13 +158,19 @@ export const regenerateGoal = async (req: any, res: Response) => {
         if (!goal) {
             return res.status(404).json({ message: "Goal not found" })
         }
-        const genAI = new GoogleGenAI({
-            apiKey: process.env.GEMINI_API_KEY as string
-        });
-        const result = await genAI.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt + "\n\nUser Goal: " + goal.title,
-        });
+        const openai = new OpenAI({
+            apiKey:process.env.OPENAPI_KEY,
+            baseURL:'https://integrate.api.nvidia.com/v1'
+        })
+        const result = await openai.chat.completions.create({
+            model:'stepfun-ai/step-3.5-flash',
+            messages:[
+                {
+                    role:'user',
+                    content:prompt + "\n\nUser Goal: " + goal.title,
+                }
+            ]
+        })
         const rawText = result.text;
         const cleanedText = cleanRoadmapResponse(rawText);
         const parsedResponse = JSON.parse(cleanedText);
