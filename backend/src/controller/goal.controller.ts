@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import Goal from "../model/gaols.mondel.ts";
-import OpenAI from "openai";
 import { prompt } from "../lib/prompt.ts";
 import User from "../model/user.model.ts";  
 import dotenv from "dotenv";
@@ -25,6 +24,7 @@ export const getdashboard = async (req: any, res: Response) => {
 
 // Helper to clean AI roadmap response and handle formatting
 const cleanRoadmapResponse = (text: string) => {
+    if (!text) return "";
     return text
         .replace(/```json/gi, "")
         .replace(/```/gi, "")
@@ -34,6 +34,7 @@ const cleanRoadmapResponse = (text: string) => {
 };
 
 export const createGoal = async (req: any, res: Response) => {
+    console.log("I am here");
     try {
         const { goal } = req.body;
         const userId = req.user._id; 
@@ -42,21 +43,26 @@ export const createGoal = async (req: any, res: Response) => {
             return res.status(400).json({ message: "Goal is required" });
         }
 
-        const openai = new OpenAI({
-            apiKey:process.env.OPENAPI_KEY,
-            baseURL:'https://integrate.api.nvidia.com/v1'
-        })
 
-       const resuult = await openai.chat.completions.create({
-        model:'stepfun-ai/step-3.5-flash',
-        messages:[
-            {
-                role:'user',
-                content:prompt + "\n\nUser Goal: " + goal,
-            }
-        ]
-       })
-        const rawText = result.text;
+     const response = await fetch('https://openrouter.ai/api/v1/chat/completions',{
+        method:'POST',
+        headers:{
+            'Authorization':`Bearer ${process.env.OPENAPI_KEY}`,
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+            model:"openai/gpt-oss-20b:free",
+            messages:[
+                {
+                    role:'user',
+                    content:prompt + "\n\nUser Goal: " + goal,
+                }
+            ]
+        })
+     })
+
+     const result = await response.json();
+        const rawText = result?.choices?.[0]?.message?.content || "";
         const cleanedText = cleanRoadmapResponse(rawText);
 
         const parsedResponse = JSON.parse(cleanedText);
@@ -161,12 +167,14 @@ export const regenerateGoal = async (req: any, res: Response) => {
         if (!goal) {
             return res.status(404).json({ message: "Goal not found" })
         }
-        const openai = new OpenAI({
-            apiKey:process.env.OPENAPI_KEY,
-            baseURL:'https://integrate.api.nvidia.com/v1'
-        })
-        const result = await openai.chat.completions.create({
-            model:'stepfun-ai/step-3.5-flash',
+       const response = await fetch('https://openrouter.ai/api/v1/chat/completions',{
+        method:'POST',
+        headers:{
+            'Authorization':`Bearer ${process.env.OPENAPI_KEY}`,
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+            model:'openai/gpt-oss-20b:free',
             messages:[
                 {
                     role:'user',
@@ -174,7 +182,10 @@ export const regenerateGoal = async (req: any, res: Response) => {
                 }
             ]
         })
-        const rawText = result.text;
+       })
+
+       const result = await response.json();
+        const rawText = result?.choices?.[0]?.message?.content || "";
         const cleanedText = cleanRoadmapResponse(rawText);
         const parsedResponse = JSON.parse(cleanedText);
         if (parsedResponse.tasks && Array.isArray(parsedResponse.tasks)) {

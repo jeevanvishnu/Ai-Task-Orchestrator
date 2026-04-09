@@ -53,7 +53,7 @@ export const ProfileForm = () => {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-medium"
+              className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-medium"
               placeholder="Your Name"
             />
             <p className="text-[11px] text-muted-foreground ml-1">This is the name that will be displayed on your profile and tasks.</p>
@@ -65,7 +65,7 @@ export const ProfileForm = () => {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-medium"
+              className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-medium"
               placeholder="your.email@example.com"
             />
             <p className="text-[11px] text-muted-foreground ml-1 underline underline-offset-4 decoration-border/60">We will use this email for account recovery and notifications.</p>
