@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 4001
 const app = express()
 
 app.use(cors({
-    origin: "https://ai-task-orchestrator-eosin.vercel.app",
+    origin: "https://ai-task-orchestrator-git-main-jeevanvishnus-projects.vercel.app",
     credentials: true
 }))
 app.use(express.json())
