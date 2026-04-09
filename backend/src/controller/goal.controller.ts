@@ -62,10 +62,26 @@ export const createGoal = async (req: any, res: Response) => {
      })
 
      const result = await response.json();
-        const rawText = result?.choices?.[0]?.message?.content || "";
-        const cleanedText = cleanRoadmapResponse(rawText);
 
-        const parsedResponse = JSON.parse(cleanedText);
+     if (!response.ok) {
+         throw new Error(result.error?.message || "OpenRouter API error");
+     }
+
+     const rawText = result?.choices?.[0]?.message?.content;
+     
+     if (!rawText) {
+         throw new Error("AI returned an empty response. Please try again.");
+     }
+
+     const cleanedText = cleanRoadmapResponse(rawText);
+
+     let parsedResponse;
+     try {
+         parsedResponse = JSON.parse(cleanedText);
+     } catch (e) {
+         console.error("Failed to parse AI response:", cleanedText);
+         throw new Error("AI returned invalid JSON. Please try again.");
+     }
 
         if (parsedResponse.tasks && Array.isArray(parsedResponse.tasks)) {
             
@@ -185,9 +201,26 @@ export const regenerateGoal = async (req: any, res: Response) => {
        })
 
        const result = await response.json();
-        const rawText = result?.choices?.[0]?.message?.content || "";
-        const cleanedText = cleanRoadmapResponse(rawText);
-        const parsedResponse = JSON.parse(cleanedText);
+
+       if (!response.ok) {
+           throw new Error(result.error?.message || "OpenRouter API error");
+       }
+
+       const rawText = result?.choices?.[0]?.message?.content;
+       
+       if (!rawText) {
+           throw new Error("AI returned an empty response. Please try again.");
+       }
+
+       const cleanedText = cleanRoadmapResponse(rawText);
+       
+       let parsedResponse;
+       try {
+           parsedResponse = JSON.parse(cleanedText);
+       } catch (e) {
+           console.error("Failed to parse AI response:", cleanedText);
+           throw new Error("AI returned invalid JSON. Please try again.");
+       }
         if (parsedResponse.tasks && Array.isArray(parsedResponse.tasks)) {
             const tasksToSave = parsedResponse.tasks.map((task: any) => ({
                 heading: task.heading,
