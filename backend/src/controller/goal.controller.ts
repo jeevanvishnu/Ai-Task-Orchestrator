@@ -25,7 +25,12 @@ export const getdashboard = async (req: any, res: Response) => {
 // Helper to clean AI roadmap response and handle formatting
 const cleanRoadmapResponse = (text: string) => {
     if (!text) return "";
-    return text
+
+    // 1. Try to extract JSON if it's wrapped in markers or extra text
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    let targetText = jsonMatch ? jsonMatch[0] : text;
+
+    return targetText
         .replace(/```json/gi, "")
         .replace(/```/gi, "")
         .replace(/\t/g, " ")
