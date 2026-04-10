@@ -7,8 +7,8 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/refresh", refreshToken);
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-router.get("/google/callback", passport.authenticate("google", { failureRedirect: "https://ai-task-orchestrator-git-main-jeevanvishnus-projects.vercel.app/login" }), (req, res) => {
-    res.redirect("https://ai-task-orchestrator-git-main-jeevanvishnus-projects.vercel.app");
+router.get("/google/callback", passport.authenticate("google", { failureRedirect: "https://ai-task-orchestrator-eosin.vercel.app/login" }), (req, res) => {
+    res.redirect("https://ai-task-orchestrator-eosin.vercel.app");
 });
 
 router.get("/me", (req, res) => {
